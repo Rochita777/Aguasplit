@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGUASPLIT · Cada Gota Cuenta</title>
+  <meta name="description" content="Proyecto de Química CBTis 45: Estequiometría aplicada al ahorro de agua y eficiencia energética en minisplits.">
+  <style>
+    :root {
+      --bg: #0b1120;
+      --bg-secondary: #0f172a;
+      --surface: #1e293b;
+      --surface-hover: #273548;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.3);
+      --secondary: #34d399;
+      --secondary-glow: rgba(52, 211, 153, 0.25);
+      --border: #334155;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+      --anim-fast: 0.25s;
+      --anim-med: 0.45s;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .progress-bar {
+      position: fixed; top: 0; left: 0; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      z-index: 1000; width: 0%;
+      transition: width 0.05s linear;
+      box-shadow: 0 0 8px var(--primary);
+    }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(14px) saturate(120%);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      transition: box-shadow var(--anim-fast) ease;
+    }
+    header.scrolled { box-shadow: var(--shadow-sm); }
+    
+    .nav-container {
+      max-width: 1280px; margin: 0 auto; padding: 0.8rem 1rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    
+    .logo {
+      font-weight: 800; font-size: 1.2rem; color: var(--primary); text-decoration: none;
+      letter-spacing: -0.5px; transition: color var(--anim-fast) ease;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .logo:hover { color: var(--secondary); }
+    .logo span { color: var(--secondary); }
+    .logo-img { width: 35px; height: 35px; object-fit: contain; border-radius: 50%; }
+    
+    nav ul { list-style: none; display: flex; gap: 1rem; flex-wrap: wrap; }
+    nav a {
+      text-decoration: none; color: var(--text-muted); font-weight: 500; font-size: 0.95rem;
+      transition: color var(--anim-fast) ease; position: relative;
+    }
+    nav a::after {
+      content: ''; position: absolute; bottom: -2px; left: 0; width: 0; height: 2px;
+      background: var(--primary); transition: width 0.3s ease;
+    }
+    nav a:hover::after { width: 100%; }
+    nav a:hover { color: var(--text); }
+
+    .menu-toggle {
+      display: none; background: none; border: none; cursor: pointer; padding: 5px;
+    }
+    .menu-toggle span {
+      display: block; width: 24px; height: 2px; background: var(--text);
+      margin: 5px 0; transition: 0.3s;
+    }
+
+    .hero {
+      position: relative; padding: 8rem 1rem 3rem; text-align: center;
+      background: radial-gradient(ellipse at 50% 0%, #1e293b 0%, var(--bg) 70%);
+      border-bottom: 1px solid var(--border); overflow: hidden;
+    }
+    .drop {
+      position: absolute; bottom: -30px; background: radial-gradient(circle at 30% 30%, rgba(56,189,248,0.4), rgba(56,189,248,0.05));
+      border-radius: 50%; pointer-events: none; animation: floatUp linear infinite; filter: blur(3px);
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.8); opacity: 0; }
+      10% { opacity: 0.6; }
+      100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+    }
+
+    .school-logo {
+      width: 130px; height: 130px; margin: 0 auto 1rem;
+      animation: logoFloat 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.4));
+      border-radius: 50%;
+    }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 7vw, 3.5rem); font-weight: 900; margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #e2e8f0, #38bdf8); -webkit-background-clip: text; background-clip: text; color: transparent;
+      line-height: 1.2;
+    }
+    .hero h1 span { background: linear-gradient(90deg, #38bdf8, #34d399); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero .subtitle {
+      font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 1.5rem;
+      line-height: 1.5;
+    }
+    .hero > p { font-size: 0.95rem; padding: 0 0.5rem; color: var(--text-muted); }
+
+    .hero-stats {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; margin-top: 2rem;
+      padding: 0 0.5rem;
+    }
+    .stat-card {
+      background: var(--surface); padding: 1rem 0.8rem; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); text-align: center; cursor: pointer;
+      transition: transform var(--anim-fast) ease, border-color var(--anim-fast) ease;
+    }
+    .stat-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+    .stat-card .val { font-size: 1.4rem; font-weight: 700; color: var(--primary); font-family: var(--font-mono); display: block; margin-bottom: 0.25rem; }
+    .stat-card .label { font-size: 0.75rem; color: var(--text-muted); }
+
+    .counter-section {
+      padding: 2.5rem 1rem; background: var(--bg-secondary); text-align: center;
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .counter-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem; max-width: 600px; margin: 0 auto;
+    }
+    .counter-item { padding: 1rem; }
+    .counter-value {
+      font-size: 2.5rem; font-weight: 800; color: var(--primary);
+      font-family: var(--font-mono); display: block;
+    }
+    .counter-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem; }
+
+    .anim-item { opacity: 0; transform: translateY(25px); transition: opacity var(--anim-med) var(--ease-out), transform var(--anim-med) var(--ease-out); }
+    .anim-item.visible { opacity: 1; transform: translateY(0); }
+    .delay-1 { transition-delay: 0.1s; }
+    .delay-2 { transition-delay: 0.2s; }
+    .delay-3 { transition-delay: 0.3s; }
+
+    section { padding: 3.5rem 1rem; max-width: 1280px; margin: 0 auto; }
+    h2 {
+      font-size: 1.75rem; margin-bottom: 1.2rem; color: var(--text); position: relative; display: inline-block;
+      padding-bottom: 0.3rem; line-height: 1.3;
+    }
+    h2::after {
+      content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transition: width 0.6s var(--ease-out); border-radius: 2px;
+    }
+    .anim-item.visible h2::after { width: 100%; }
+    h3 { font-size: 1.25rem; margin: 1.5rem 0 0.8rem; color: var(--text); }
+    p { margin-bottom: 1rem; color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+    
+    .card {
+      background: var(--surface); padding: 1.5rem; border-radius: var(--radius); box-shadow: var(--shadow);
+      margin-bottom: 1.2rem; position: relative; overflow: hidden; border: 1px solid var(--border);
+    }
+    .card:hover { transform: translateY(-5px); border-color: rgba(56,189,248,0.3); }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary)); transform: scaleX(0);
+      transform-origin: left; transition: transform var(--anim-fast) var(--ease-out);
+    }
+    .card:hover::before { transform: scaleX(1); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 1.2rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 1.2rem; }
+
+    .comp-item { display: flex; gap: 1rem; align-items: flex-start; }
+    .comp-icon {
+      font-size: 1.6rem; background: rgba(56,189,248,0.1); width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center; border-radius: 12px; flex-shrink: 0;
+      border: 1px solid var(--border);
+    }
+    .comp-item h4 { margin: 0 0 0.3rem; color: var(--text); font-size: 1.1rem; }
+    .comp-item p { margin: 0; font-size: 0.9rem; }
+
+    .table-wrap {
+      overflow-x: auto; margin: 1.5rem 0; border-radius: var(--radius-sm); border: 1px solid var(--border);
+      opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .table-wrap.visible { opacity: 1; transform: translateY(0); }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); min-width: 600px; }
+    th, td { padding: 0.9rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    th { background: #111827; font-weight: 600; color: var(--text); white-space: nowrap; }
+    tr:hover td { background: rgba(56,189,248,0.05); }
+    .verify { background: rgba(52, 211, 153, 0.1); font-weight: 600; color: var(--secondary); }
+    code { font-family: var(--font-mono); background: rgba(255,255,255,0.05); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.85em; }
+
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 0.6rem 1rem; border: 1px solid var(--border); background: var(--surface);
+      border-radius: var(--radius-sm); cursor: pointer; font-weight: 500; color: var(--text-muted);
+      flex: 1; min-width: 100px; text-align: center; transition: all 0.2s ease;
+    }
+    .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .tab-btn.active { background: var(--primary); color: #0b1120; border-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: tabFadeIn 0.4s ease; }
+    @keyframes tabFadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    ul.check { list-style: none; padding: 0; }
+    ul.check li {
+      padding: 0.7rem 0 0.7rem 1.8rem; position: relative; color: var(--text-muted);
+      opacity: 0; transform: translateX(-10px); transition: all 0.4s ease;
+    }
+    ul.check li.visible { opacity: 1; transform: translateX(0); }
+    ul.check li::before { content: "✓"; position: absolute; left: 0; color: var(--secondary); font-weight: bold; }
+    
+    .badge {
+      display: inline-block; padding: 0.3rem 0.7rem; background: rgba(56,189,248,0.15); color: var(--primary);
+      border-radius: 20px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(56,189,248,0.2);
+      margin: 0.2rem;
+    }
+
+    .calculator {
+      background: var(--surface); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--border); margin: 2rem 0;
+    }
+    .calc-input { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; align-items: end; }
+    .calc-group { flex: 1; min-width: 140px; }
+    .calc-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem; }
+    .calc-group input, .calc-group select {
+      width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg); color: var(--text); font-family: var(--font-mono);
+    }
+    .calc-group input:focus, .calc-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+    .calc-btn {
+      padding: 0.75rem; width: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border: none; border-radius: var(--radius-sm); color: #0b1120; font-weight: 700; cursor: pointer;
+    }
+    .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56,189,248,0.4); }
+    .calc-result {
+      margin-top: 1.5rem; padding: 1.5rem; background: rgba(56,189,248,0.05);
+      border-radius: var(--radius-sm); border: 1px solid var(--border); display: none;
+    }
+    .calc-result.show { display: block; animation: fadeIn 0.3s ease; }
+
+    .back-to-top {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; width: 44px; height: 44px;
+      background: var(--surface); color: var(--primary); border: 1px solid var(--border);
+      border-radius: 50%; cursor: pointer; box-shadow: var(--shadow); z-index: 90;
+      display: none; align-items: center; justify-content: center; font-size: 1.2rem;
+    }
+    .back-to-top.visible { display: flex; animation: fadeIn 0.3s ease; }
+
+    footer {
+      background: #050b14; border-top: 1px solid var(--border); padding: 3rem 1rem; margin-top: 4rem;
+    }
+    .footer-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 1280px; margin: 0 auto; }
+    footer h4 { color: var(--text); margin-bottom: 0.8rem; }
+    footer p { font-size: 0.9rem; color: var(--text-muted); }
+    footer small { display: block; margin-top: 2.5rem; text-align: center; opacity: 0.6; font-size: 0.8rem; }
+    
+    .footer-logo { max-width: 80px; margin-bottom: 1rem; opacity: 0.8; }
+
+    .cycle-step {
+      background: rgba(56,189,248,0.05); padding: 1rem; border-radius: 8px;
+      margin: 0.5rem 0; border-left: 3px solid var(--primary);
+    }
+    .cycle-step strong { color: var(--primary); }
+
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+      nav {
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+        max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      }
+      nav.open { max-height: 500px; }
+      nav ul { flex-direction: column; gap: 0; }
+      nav li { border-bottom: 1px solid var(--border); }
+      nav li:last-child { border-bottom: none; }
+      nav a {
+        display: block; padding: 1rem 1.5rem; color: var(--text);
+        border-radius: 0;
+      }
+      nav a::after { display: none; }
+      nav a:hover { background: rgba(255,255,255,0.03); }
+
+      .hero { padding: 7rem 1rem 2rem; }
+      .school-logo { width: 110px; height: 110px; }
+      .hero h1 { font-size: 2.2rem; }
+      .counter-grid { grid-template-columns: repeat(2, 1fr); }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .comp-icon { width: 40px; height: 40px; font-size: 1.4rem; }
+      .calc-btn { width: 100%; margin-top: 10px; }
+    }
+
+    @media (min-width: 769px) {
+      .hero { padding: 10rem 1.5rem 5rem; }
+      .school-logo { width: 160px; height: 160px; }
+      .hero h1 { font-size: 3.5rem; }
+      .hero-stats { grid-template-columns: repeat(4, 1fr); }
+      .counter-grid { grid-template-columns: repeat(4, 1fr); }
+      .grid-2 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+      .calc-btn { width: auto; margin-top: 0; padding: 0.75rem 2rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      .drop { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<header id="mainHeader">
+  <div class="nav-container">
+    <a href="#" class="logo">
+      <img src="aguasplit-logo.png" alt="Aguasplit Logo" class="logo-img" onerror="this.style.display='none'">
+      AGUA<span>SPLIT</span>
+    </a>
+    
+    <button class="menu-toggle" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav class="main-nav">
+      <ul>
+        <li><a href="#intro">Introducción</a></li>
+        <li><a href="#objetivos">Objetivos</a></li>
+        <li><a href="#componentes">Componentes</a></li>
+        <li><a href="#funcionamiento">Funcionamiento</a></li>
+        <li><a href="#agua">Agua</a></li>
+        <li><a href="#refrigerante">Refrigerante</a></li>
+        <li><a href="#estequiometria">Estequiometría</a></li>
+        <li><a href="#calculadora">Calculadora</a></li>
+        <li><a href="#impacto">Impacto</a></li>
+        <li><a href="#conclusiones">Conclusiones</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="hero">
+    <div id="drops-container"></div>
+    <img src="aguasplit-logo.png" alt="Aguasplit Logo" class="school-logo" onerror="this.style.display='none'">
+    <h1>AGUA<span>SPLIT</span></h1>
+    <p class="subtitle">Cada Gota Cuenta · Estequiometría Aplicada al Ahorro de Agua y la Eficiencia Energética</p>
+    <p style="max-width:750px; margin:0 auto 1.5rem; color:var(--text-muted);">Analizamos el minisplit, cuantificamos el agua producida por condensación y relacionamos el proceso con la química y la ley de conservación de la materia.</p>
+    <div class="hero-stats">
+      <div class="stat-card" onclick="showStatInfo('agua')"><span class="val">6.4 L</span><span class="label">Agua / 8 horas</span></div>
+      <div class="stat-card" onclick="showStatInfo('moles')"><span class="val">355.6 mol</span><span class="label">H₂O por jornada</span></div>
+      <div class="stat-card" onclick="showStatInfo('refrigerante')"><span class="val">R-410A</span><span class="label">Refrigerante</span></div>
+      <div class="stat-card" onclick="showStatInfo('masa')"><span class="val">120 g/mol</span><span class="label">Masa C₂HF₅</span></div>
+    </div>
+    <div id="stat-info" class="card" style="margin-top:2rem; display:none; max-width:600px; margin-left:auto; margin-right:auto;"></div>
+  </section>
+
+  <section class="counter-section">
+    <div class="counter-grid">
+      <div class="counter-item"><span class="counter-value" data-target="100">0</span><div class="counter-label">Litros/mes recuperados</div></div>
+      <div class="counter-item"><span class="counter-value" data-target="355">0</span><div class="counter-label">Moles de H₂O/día</div></div>
+      <div class="counter-item"><span class="counter-value" data-target="3">0</span><div class="counter-label">Reacciones analizadas</div></div>
+      <div class="counter-item"><span class="counter-value" data-target="100">0</span><div class="counter-label">% Conservación materia</div></div>
+    </div>
+  </section>
+
+  <section id="intro" class="anim-item">
+    <h2>01 / Introducción</h2>
+    <div class="grid-2">
+      <div class="card delay-1 anim-item">
+        <h3>¿Qué es un minisplit?</h3>
+        <p>Es uno de los sistemas de climatización más utilizados en hogares, escuelas y oficinas. Su funcionamiento se basa en un ciclo termodinámico que transfiere calor mediante un refrigerante especializado.</p>
+        <p>Un efecto secundario inevitable es la <strong>condensación del vapor de agua</strong> contenido en el aire: al enfriarse el aire interior, la humedad se convierte en agua líquida que normalmente se desperdicia por la manguera de drenaje.</p>
+        <div style="margin-top:1rem; padding:1rem; background:rgba(56,189,248,0.05); border-radius:8px; border-left:3px solid var(--primary);">
+          <p style="margin:0; font-size:0.9rem;"><strong>❄️ Transferencia de calor:</strong> El minisplit no crea frío directamente; retira calor del interior y lo libera al exterior.</p>
+          <p style="margin:0.5rem 0 0; font-size:0.9rem;"><strong>💧 Condensación:</strong> El vapor del aire se convierte en agua líquida al entrar en contacto con el evaporador frío.</p>
+        </div>
+      </div>
+      <div class="card delay-2 anim-item">
+        <h3>¿De qué trata AGUASPLIT?</h3>
+        <p>El proyecto parte de una pregunta sencilla: <em>¿cuánta agua produce un minisplit y cómo puede aprovecharse?</em></p>
+        <p>Para responderla, analizamos el refrigerante <span class="badge">R-410A</span> y aplicamos los principios de la <strong>estequiometría</strong> para calcular con precisión las cantidades de materia involucradas y proponer alternativas de uso sustentable del agua recuperada.</p>
+        <ul class="check anim-item delay-3">
+          <li>Química aplicada a tecnología cotidiana</li>
+          <li>Recurso hídrico aprovechable</li>
+          <li>Cultura de sustentabilidad escolar</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="objetivos" class="anim-item">
+    <h2>02 / Objetivos</h2>
+    <div class="card anim-item delay-1">
+      <h3>Objetivo General</h3>
+      <p>Analizar el funcionamiento de un minisplit, cuantificar el agua producida por condensación y relacionar este proceso con la estequiometría y la ley de conservación de la materia, promoviendo su aprovechamiento sustentable.</p>
+    </div>
+    <h3>Objetivos Específicos</h3>
+    <div class="grid-3">
+      <div class="card comp-item anim-item delay-1"><div class="comp-icon">❄️</div><div><h4>Ciclo de refrigeración</h4><p>Describir el ciclo y los componentes del minisplit.</p></div></div>
+      <div class="card comp-item anim-item delay-2"><div class="comp-icon">📏</div><div><h4>Medición de agua</h4><p>Medir la producción en distintas condiciones de temperatura.</p></div></div>
+      <div class="card comp-item anim-item delay-3"><div class="comp-icon">🧪</div><div><h4>Composición R-410A</h4><p>Estudiar el refrigerante, con énfasis en el Pentafluoroetano (R-125).</p></div></div>
+      <div class="card comp-item anim-item delay-1"><div class="comp-icon">🧮</div><div><h4>Aplicación estequiométrica</h4><p>Balanceo, cálculo de moles y proporciones molares.</p></div></div>
+      <div class="card comp-item anim-item delay-2"><div class="comp-icon">🌱</div><div><h4>Sustentabilidad</h4><p>Proponer usos responsables para el agua recuperada.</p></div></div>
+    </div>
+  </section>
+
+  <section id="componentes" class="anim-item">
+    <h2>03 / Componentes del Minisplit</h2>
+    <p class="anim-item delay-1">Un minisplit es un sistema dividido en dos unidades conectadas por tuberías de cobre. Cada componente cumple una función esencial:</p>
+    <div class="grid-2">
+      <div class="card anim-item delay-2">
+        <h3>Unidad Interior</h3>
+        <ul class="check">
+          <li><strong>Evaporador:</strong> Serpentín frío que absorbe el calor del aire interior y produce condensación.</li>
+          <li><strong>Ventilador/Turbina:</strong> Distribuye el aire frío uniformemente en la habitación.</li>
+          <li><strong>Filtros de aire:</strong> Retienen polvo y partículas para mejorar la calidad del aire.</li>
+          <li><strong>Tarjeta electrónica:</strong> Controla temperatura, velocidad y funciones del sistema.</li>
+          <li><strong>Sensor de temperatura:</strong> Detecta la temperatura ambiente y regula el funcionamiento.</li>
+        </ul>
+      </div>
+      <div class="card anim-item delay-3">
+        <h3>Unidad Exterior</h3>
+        <ul class="check">
+          <li><strong>Compresor:</strong> El "corazón" del sistema; comprime y mueve el refrigerante.</li>
+          <li><strong>Condensador:</strong> Libera el calor absorbido hacia el ambiente exterior.</li>
+          <li><strong>Ventilador exterior:</strong> Expulsa el calor acumulado en el condensador.</li>
+          <li><strong>Capacitor:</strong> Ayuda al arranque del compresor y ventiladores.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card anim-item delay-2">
+      <h3>Componentes del Sistema</h3>
+      <div class="grid-3" style="margin-top:1rem;">
+        <div><strong>🔩 Tuberías de cobre:</strong> Conectan las unidades y permiten la circulación del refrigerante.</div>
+        <div><strong>🧪 Gas refrigerante:</strong> Transporta el calor cambiando de estado durante el ciclo.</div>
+        <div><strong>💧 Manguera de drenaje:</strong> Conduce el agua de condensación al exterior.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="funcionamiento" class="anim-item">
+    <h2>04 / Ciclo de Funcionamiento</h2>
+    <p class="anim-item delay-1">El minisplit opera mediante un ciclo continuo de 9 pasos que transfiere calor y produce agua como subproducto:</p>
+    <div class="card anim-item delay-2">
+      <div class="cycle-step"><strong>Paso 1:</strong> El ventilador de la unidad interior toma el aire caliente de la habitación.</div>
+      <div class="cycle-step"><strong>Paso 2:</strong> El aire pasa por el evaporador frío debido al refrigerante en circulación.</div>
+      <div class="cycle-step"><strong>Paso 3:</strong> El refrigerante absorbe el calor del aire interior y cambia de estado (líquido → vapor).</div>
+      <div class="cycle-step"><strong>Paso 4:</strong> El compresor impulsa y comprime el refrigerante para moverlo hacia el exterior.</div>
+      <div class="cycle-step"><strong>Paso 5:</strong> El refrigerante llega a la unidad exterior y pasa por el condensador.</div>
+      <div class="cycle-step"><strong>Paso 6:</strong> El condensador libera el calor hacia el ambiente exterior.</div>
+      <div class="cycle-step"><strong>Paso 7:</strong> El refrigerante se enfría y regresa a la unidad interior para repetir el ciclo.</div>
+      <div class="cycle-step"><strong>Paso 8:</strong> La humedad del aire se condensa en el evaporador convirtiéndose en gotas de agua.</div>
+      <div class="cycle-step"><strong>Paso 9:</strong> El agua condensada sale por la manguera de drenaje hacia el exterior.</div>
+    </div>
+  </section>
+
+  <section id="agua" class="anim-item">
+    <h2>05 / Producción de Agua por Condensación</h2>
+    <p class="anim-item delay-1">Mediciones experimentales de la producción de agua en función de la temperatura:</p>
+    <div class="table-wrap anim-item delay-2">
+      <table>
+        <tr><th>Temperatura</th><th>L/hora</th><th>mol H₂O/h</th><th>8 horas</th><th>24 horas</th></tr>
+        <tr><td>20 °C</td><td>0.8 L</td><td>≈ 44.4 mol</td><td>6.4 L (13 botellas)</td><td>19.2 L</td></tr>
+        <tr><td>22 °C</td><td>0.7 L</td><td>≈ 38.9 mol</td><td>5.6 L (11 botellas)</td><td>16.8 L</td></tr>
+        <tr><td>Promedio</td><td>0.6 L</td><td>≈ 33.3 mol</td><td>4.8 L (10 botellas)</td><td>14.4 L</td></tr>
+      </table>
+    </div>
+
+    <div class="card anim-item delay-3">
+      <h3>Cálculo Estequiométrico</h3>
+      <p>Con densidad de <code>1 g/mL</code> y masa molar de <code>18 g/mol</code>:</p>
+      <p style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px; font-family:var(--font-mono); margin:1rem 0; border:1px solid var(--border);">
+        Moles H₂O = V(mL) × 1 g/mL ÷ 18 g/mol<br>
+        Ejemplo (20 °C, 8 h): 6 400 mL ÷ 18 g/mol = <strong>355.6 mol de H₂O</strong>
+      </p>
+      <p>Equivale a <strong>2.14 × 10²⁶ moléculas</strong> de agua en una sola jornada.</p>
+      <div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1rem;">
+        <span class="badge">≈ 13 botellas de 500 mL</span>
+        <span class="badge">Casi 1/3 de garrafón</span>
+        <span class="badge">Suficiente para regar un jardín</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="refrigerante" class="anim-item">
+    <h2>06 / Refrigerante R-410A</h2>
+    <p class="anim-item delay-1">Los minisplits modernos utilizan el <strong>R-410A</strong>, una mezcla binaria que no daña la capa de ozono:</p>
+    <div class="grid-2">
+      <div class="card anim-item delay-2">
+        <h3>Composición</h3>
+        <p><span class="badge">50%</span> <strong>R-32</strong> · Difluorometano (CH₂F₂) · Alta eficiencia energética.</p>
+        <p><span class="badge">50%</span> <strong>R-125</strong> · Pentafluoroetano (CF₂CHF₃) · Reduce inflamabilidad.</p>
+        <div style="margin-top:1.5rem; background:rgba(255,255,255,0.03); padding:1rem; border-radius:8px; font-family:var(--font-mono); text-align:center; border:1px solid var(--border);">
+          <strong>CF₂CHF₃ ≡ C₂HF₅</strong><br>
+          2 carbonos · 1 hidrógeno · 5 flúores · <strong>M = 120 g/mol</strong>
+        </div>
+      </div>
+      <div class="card anim-item delay-3">
+        <h3>Estructura Molecular</h3>
+        <pre style="background:#0b1120; color:#e2e8f0; padding:1.5rem; border-radius:8px; font-size:0.95rem; overflow-x:auto; line-height:1.4; border:1px solid var(--border);">
+  F   F
+  |   |
+F-C - C-F
+  |   |
+  F   H
+        </pre>
+        <p style="margin-top:1rem;">Representación simplificada: <code>CF₃—CHF₂</code>. Pertenece a la familia de los hidrofluorocarbonos (HFC).</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="estequiometria" class="anim-item">
+    <h2>07 / Estequiometría</h2>
+    <p class="anim-item delay-1">Rama de la química que estudia las relaciones cuantitativas entre reactivos y productos. Se basa en la <strong>Ley de Conservación de la Materia</strong>: <em>La masa total de reactivos es igual a la masa total de productos. Ningún átomo se crea ni se destruye.</em></p>
+    <p class="anim-item delay-2"><strong>Fórmula clave:</strong> <code>Moles = Masa(g) ÷ Masa molar(g/mol)</code></p>
+
+    <h3 class="anim-item delay-2">Reacciones del Pentafluoroetano (C₂HF₅)</h3>
+    <div class="tabs anim-item delay-3">
+      <button class="tab-btn active" data-tab="r1">R1 · Hidrólisis</button>
+      <button class="tab-btn" data-tab="r2">R2 · Potasio</button>
+      <button class="tab-btn" data-tab="r3">R3 · Magnesio</button>
+    </div>
+
+    <div id="r1" class="tab-content active">
+      <div class="card anim-item delay-1">
+        <p><strong>C₂HF₅ + 4 H₂O → 2 CO₂ + 5 HF + 2 H₂</strong></p>
+        <p>La hidrólisis reacciona con agua a alta temperatura, produciendo dióxido de carbono, ácido fluorhídrico (corrosivo) e hidrógeno.</p>
+        <div class="table-wrap anim-item delay-2">
+          <table>
+            <tr><th>Sustancia</th><th>M. Molar</th><th>Coef.</th><th>Moles</th><th>Masa</th></tr>
+            <tr><td>C₂HF₅</td><td>120 g/mol</td><td>1</td><td>1 mol</td><td>120 g</td></tr>
+            <tr><td>H₂O</td><td>18 g/mol</td><td>4</td><td>4 mol</td><td>72 g</td></tr>
+            <tr><td>CO₂</td><td>44 g/mol</td><td>2</td><td>2 mol</td><td>88 g</td></tr>
+            <tr><td>HF</td><td>20 g/mol</td><td>5</td><td>5 mol</td><td>100 g</td></tr>
+            <tr><td>H₂</td><td>2 g/mol</td><td>2</td><td>2 mol</td><td>4 g</td></tr>
+            <tr class="verify"><td colspan="3">Reactivos: 120 + 72 = 192 g</td><td colspan="2">Productos: 88 + 100 + 4 = 192 g ✓</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="r2" class="tab-content">
+      <div class="card anim-item delay-1">
+        <p><strong>C₂HF₅ + 5 K → 5 KF + 2 C + ½ H₂</strong></p>
+        <p>El potasio desplaza el flúor formando fluoruro de potasio (KF), liberando carbono sólido e hidrógeno gaseoso.</p>
+        <div class="table-wrap anim-item delay-2">
+          <table>
+            <tr><th>Sustancia</th><th>M. Molar</th><th>Coef.</th><th>Moles</th><th>Masa</th></tr>
+            <tr><td>C₂HF₅</td><td>120 g/mol</td><td>1</td><td>1 mol</td><td>120 g</td></tr>
+            <tr><td>K</td><td>39 g/mol</td><td>5</td><td>5 mol</td><td>195 g</td></tr>
+            <tr><td>KF</td><td>58 g/mol</td><td>5</td><td>5 mol</td><td>290 g</td></tr>
+            <tr><td>C</td><td>12 g/mol</td><td>2</td><td>2 mol</td><td>24 g</td></tr>
+            <tr><td>H₂</td><td>2 g/mol</td><td>½</td><td>0.5 mol</td><td>1 g</td></tr>
+            <tr class="verify"><td colspan="3">Reactivos: 120 + 195 = 315 g</td><td colspan="2">Productos: 290 + 24 + 1 = 315 g ✓</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="r3" class="tab-content">
+      <div class="card anim-item delay-1">
+        <p><strong>2 C₂HF₅ + 5 Mg → 5 MgF₂ + 4 C + H₂</strong></p>
+        <p>El magnesio (Mg²⁺) capta dos flúores por átomo. Se necesitan 5 moles de Mg para capturar los 10 flúores presentes en 2 moles de C₂HF₅.</p>
+        <div class="table-wrap anim-item delay-2">
+          <table>
+            <tr><th>Sustancia</th><th>M. Molar</th><th>Coef.</th><th>Moles</th><th>Masa</th></tr>
+            <tr><td>C₂HF₅</td><td>120 g/mol</td><td>2</td><td>2 mol</td><td>240 g</td></tr>
+            <tr><td>Mg</td><td>24.3 g/mol</td><td>5</td><td>5 mol</td><td>121.5 g</td></tr>
+            <tr><td>MgF₂</td><td>62.3 g/mol</td><td>5</td><td>5 mol</td><td>311.5 g</td></tr>
+            <tr><td>C</td><td>12 g/mol</td><td>4</td><td>4 mol</td><td>48 g</td></tr>
+            <tr><td>H₂</td><td>2 g/mol</td><td>1</td><td>1 mol</td><td>2 g</td></tr>
+            <tr class="verify"><td colspan="3">Reactivos: 240 + 121.5 = 361.5 g</td><td colspan="2">Productos: 311.5 + 48 + 2 = 361.5 g ✓</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="calculadora" class="anim-item">
+    <h2>08 / Calculadora Interactiva</h2>
+    <div class="calculator anim-item delay-1">
+      <h3>Calcula la producción de agua de tu minisplit</h3>
+      <p>Ingresa los datos de tu equipo para estimar cuánta agua puedes recuperar:</p>
+      <div class="calc-input">
+        <div class="calc-group">
+          <label for="temp">Temperatura ambiente (°C)</label>
+          <select id="temp">
+            <option value="0.8">20°C (0.8 L/h)</option>
+            <option value="0.7">22°C (0.7 L/h)</option>
+            <option value="0.6" selected>Promedio (0.6 L/h)</option>
+            <option value="0.5">18°C (0.5 L/h)</option>
+          </select>
+        </div>
+        <div class="calc-group">
+          <label for="hours">Horas de uso por día</label>
+          <input type="number" id="hours" value="8" min="1" max="24">
+        </div>
+        <div class="calc-group">
+          <label for="days">Días de uso</label>
+          <input type="number" id="days" value="30" min="1" max="365">
+        </div>
+        <button class="calc-btn" onclick="calculateWater()">Calcular</button>
+      </div>
+      <div id="calc-result" class="calc-result">
+        <h4>Resultados:</h4>
+        <p id="result-content"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="impacto" class="anim-item">
+    <h2>09 / Impacto Ambiental y Sustentabilidad</h2>
+    <p class="anim-item delay-1">El agua de condensación <strong>no es apta para consumo humano directo</strong>, pero puede reutilizarse eficientemente en actividades no potables. Considerando 8–12 h/día en temporada de calor, se recuperan <strong>más de 100 litros al mes por equipo instalado</strong>.</p>
+    <div class="grid-2">
+      <div class="card anim-item delay-2">
+        <h3>Usos Recomendados</h3>
+        <ul class="check">
+          <li>Riego de plantas y jardines</li>
+          <li>Limpieza de pisos, patios y herramientas</li>
+          <li>Llenado de cisternas de sanitarios</li>
+          <li>Lavado de vehículos</li>
+          <li>Limpieza de ventanas y exteriores</li>
+        </ul>
+      </div>
+      <div class="card anim-item delay-3">
+        <h3>Beneficios del Proyecto</h3>
+        <ul class="check">
+          <li>Reducción del consumo de agua potable</li>
+          <li>Menor costo en el recibo de agua</li>
+          <li>Cultura de sustentabilidad en la escuela</li>
+          <li>Aplicación directa de la química en la vida diaria</li>
+          <li>Conciencia sobre el ciclo del agua</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="conclusiones" class="anim-item">
+    <h2>10 / Conclusiones</h2>
+    <div class="grid-2">
+      <div class="card anim-item delay-1">
+        <h3>01 / Recurso Valioso</h3>
+        <p>El minisplit no solo climatiza espacios, sino que también genera un recurso hídrico que habitualmente se desperdicia. Puede aprovecharse responsablemente en actividades no potables.</p>
+      </div>
+      <div class="card anim-item delay-2">
+        <h3>02 / Cuantificación Precisa</h3>
+        <p>El análisis estequiométrico permitió cuantificar la producción: entre <strong>4.8 y 6.4 litros por jornada de 8 horas</strong>, equivalentes a entre 267 y 355.6 moles de H₂O.</p>
+      </div>
+      <div class="card anim-item delay-1">
+        <h3>03 / Conservación Verificada</h3>
+        <p>Las tres reacciones del Pentafluoroetano (R-125) comprobaron la Ley de Conservación de la Materia. Las tablas estequiométricas demostraron que la masa de reactivos es exactamente igual a la de los productos.</p>
+      </div>
+      <div class="card anim-item delay-2">
+        <h3>04 / Química Aplicada</h3>
+        <p>La estequiometría no es solo teoría: es una herramienta real para entender, medir y optimizar los procesos químicos que ocurren en nuestra vida cotidiana.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<button class="back-to-top" id="backToTop" aria-label="Volver arriba">↑</button>
+
+<footer>
+  <div class="footer-grid">
+    <div>
+      <h4>AGUASPLIT</h4>
+      <p>Proyecto de Química</p>
+      <p>CBTis No. 45 · Grupo 4AP</p>
+    </div>
+    <div>
+      <h4>Integrantes</h4>
+      <p>Héctor E. De La Rocha Cota<br>Carlos Rojo Verduzco<br>Erick A. López Arredondo<br>Edgar I. Cedillo Takshima<br>Alejandro Arredondo Rosales<br>Iván López Montoya<br>Omar Angulo Montoya<br>David Rosario López López</p>
+    </div>
+    <div>
+      <h4>Profesor</h4>
+      <p>David Alejandro Rodríguez Juárez</p>
+      <p style="margin-top:1rem; font-size:0.85rem;">Centro de Bachillerato Tecnológico Industrial y de Servicios No. 45<br>Guamúchil, Sinaloa</p>
+    </div>
+    <div style="text-align: center;">
+      <img src="cbtis45-logo.png" alt="CBTis 45" class="footer-logo" onerror="this.style.display='none'">
+      <p style="margin-top: 0.5rem;">CBTis 45</p>
+    </div>
+  </div>
+  <small>AGUASPLIT · Cada Gota Cuenta · Estequiometría Aplicada al Ahorro de Agua · CBTis 45 · Grupo 4AP</small>
+</footer>
+
+<script>
+  // Menú Móvil
+  const menuToggle = document.querySelector('.menu-toggle');
+  const nav = document.querySelector('.main-nav');
+  
+  menuToggle.addEventListener('click', () => {
+    nav.classList.toggle('open');
+    const spans = menuToggle.querySelectorAll('span');
+    if(nav.classList.contains('open')) {
+      spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
+      spans[1].style.opacity = '0';
+      spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
+    } else {
+      spans[0].style.transform = 'none';
+      spans[1].style.opacity = '1';
+      spans[2].style.transform = 'none';
+    }
+  });
+
+  document.querySelectorAll('.main-nav a').forEach(link => {
+    link.addEventListener('click', () => {
+      nav.classList.remove('open');
+      const spans = menuToggle.querySelectorAll('span');
+      spans[0].style.transform = 'none';
+      spans[1].style.opacity = '1';
+      spans[2].style.transform = 'none';
+    });
+  });
+
+  // Progress & Header
+  const progressBar = document.getElementById('progressBar');
+  const mainHeader = document.getElementById('mainHeader');
+  window.addEventListener('scroll', () => {
+    const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+    progressBar.style.width = scrolled + "%";
+    mainHeader.classList.toggle('scrolled', window.scrollY > 10);
+  });
+
+  const backToTop = document.getElementById('backToTop');
+  window.addEventListener('scroll', () => backToTop.classList.toggle('visible', window.scrollY > 400));
+  backToTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  // Animaciones Scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        entry.target.querySelectorAll('.check li').forEach((li, i) => 
+          setTimeout(() => li.classList.add('visible'), i * 80));
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.anim-item, .table-wrap').forEach(el => observer.observe(el));
+
+  // Tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Gotas de agua
+  const dropsContainer = document.getElementById('drops-container');
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    for (let i = 0; i < 8; i++) {
+      const drop = document.createElement('div');
+      drop.classList.add('drop');
+      drop.style.width = drop.style.height = `${Math.random() * 20 + 10}px`;
+      drop.style.left = `${Math.random() * 100}%`;
+      drop.style.animationDuration = `${Math.random() * 6 + 5}s`;
+      drop.style.animationDelay = `${Math.random() * 5}s`;
+      dropsContainer.appendChild(drop);
+    }
+  }
+
+  // Contadores
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const counters = entry.target.querySelectorAll('.counter-value');
+        counters.forEach(counter => {
+          const target = parseInt(counter.getAttribute('data-target'));
+          const step = target / 100;
+          let current = 0;
+          const timer = setInterval(() => {
+            current += step;
+            if (current >= target) {
+              counter.textContent = target + (target === 100 ? '%' : '+');
+              clearInterval(timer);
+            } else {
+              counter.textContent = Math.floor(current);
+            }
+          }, 20);
+        });
+        counterObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+  const counterSection = document.querySelector('.counter-section');
+  if (counterSection) counterObserver.observe(counterSection);
+
+  // Calculadora
+  function calculateWater() {
+    const rate = parseFloat(document.getElementById('temp').value);
+    const hours = parseInt(document.getElementById('hours').value);
+    const days = parseInt(document.getElementById('days').value);
+    const liters = rate * hours * days;
+    const moles = (liters * 1000) / 18;
+    const bottles = Math.floor(liters / 0.5);
+    
+    const resultDiv = document.getElementById('calc-result');
+    document.getElementById('result-content').innerHTML = `
+      <strong style="color: var(--primary); font-size: 1.2rem;">${liters.toFixed(1)} litros</strong> en ${days} días<br>
+      ≈ ${moles.toFixed(0)} moles de H₂O<br>
+      ≈ ${bottles} botellas de 500 mL<br>
+      <br>
+      <em>Proyección mensual (30 días, 10h/día): ${(rate * 10 * 30).toFixed(1)} L</em>
+    `;
+    resultDiv.classList.add('show');
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Info Cards
+  const statInfo = {
+    agua: '<strong>6.4 litros en 8 horas</strong><br>Esto equivale a aproximadamente 13 botellas de 500 mL o casi un tercio de un garrafón de 20L. ¡Suficiente para regar un jardín pequeño!',
+    moles: '<strong>355.6 moles de H₂O</strong><br>Esto representa 2.14 × 10²⁶ moléculas de agua producidas en una sola jornada de 8 horas a 20°C.',
+    refrigerante: '<strong>R-410A</strong><br>Mezcla 50% R-32 (CH₂F₂) y 50% R-125 (C₂HF₅). No daña la capa de ozono y es el estándar en minisplits modernos.',
+    masa: '<strong>120 g/mol</strong><br>Masa molar del Pentafluoroetano (C₂HF₅). Compuesto por 2 carbonos, 1 hidrógeno y 5 flúores.'
+  };
+  function showStatInfo(type) {
+    const infoDiv = document.getElementById('stat-info');
+    infoDiv.innerHTML = statInfo[type];
+    infoDiv.style.display = 'block';
+    infoDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => {
+      infoDiv.style.display = 'none';
+    }, 8000);
+  }
+</script>
+
+</body>
+</html>
